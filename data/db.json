@@ -4,7 +4,12 @@
     {
       "id": "mwd7lysptvg4ti",
       "name": "MMM",
-      "members": []
+      "members": [
+        {
+          "id": "mwd7mh6z1zday1",
+          "name": "SDKim"
+        }
+      ]
     }
   ],
   "rounds": []
