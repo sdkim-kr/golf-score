@@ -40,5 +40,20 @@
       ]
     }
   ],
-  "rounds": []
+  "rounds": [
+    {
+      "id": "mwd93v236d4bga",
+      "groupId": "mwd7lysptvg4ti",
+      "date": "2021-11-07",
+      "course": "Club D",
+      "costs": {},
+      "memo": "",
+      "scores": {
+        "mwd7mh6z1zday1": 107,
+        "mwd7mtpfbdtf5s": 91,
+        "mwd7nkxbi5y1ae": 106,
+        "mwd7nwmfgx8twe": 92
+      }
+    }
+  ]
 }
