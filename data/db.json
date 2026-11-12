@@ -1,5 +1,11 @@
 {
   "version": 1,
-  "groups": [],
+  "groups": [
+    {
+      "id": "mwd7lysptvg4ti",
+      "name": "MMM",
+      "members": []
+    }
+  ],
   "rounds": []
 }
