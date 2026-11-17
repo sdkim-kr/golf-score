@@ -118,8 +118,10 @@
       "groupId": "mwd7lysptvg4ti",
       "date": "2025-10-27",
       "course": "내장산cc",
-      "costs": {},
-      "memo": "",
+      "costs": {
+        "other": 470000
+      },
+      "memo": "1박2일 패키지: 카트,조식,숙소포함",
       "scores": {
         "mwd7mh6z1zday1": 101,
         "mwd7mtpfbdtf5s": 100,
