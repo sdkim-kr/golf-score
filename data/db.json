@@ -102,8 +102,10 @@
       "groupId": "mwd7lysptvg4ti",
       "date": "2024-06-21",
       "course": "영광cc",
-      "costs": {},
-      "memo": "",
+      "costs": {
+        "other": 350000
+      },
+      "memo": "1박2일 패키지, 조식,숙소포함",
       "scores": {
         "mwd7mh6z1zday1": 98,
         "mwd7mtpfbdtf5s": 87,
