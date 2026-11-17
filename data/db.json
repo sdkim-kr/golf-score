@@ -60,8 +60,10 @@
       "groupId": "mwd7lysptvg4ti",
       "date": "2022-05-04",
       "course": "문경cc",
-      "costs": {},
-      "memo": "",
+      "costs": {
+        "other": 309000
+      },
+      "memo": "1박2일 패키지, 점심-새재산버섯, 삼시세끼 리조트",
       "scores": {
         "mwd7mh6z1zday1": 108,
         "mwd7mtpfbdtf5s": 91,
