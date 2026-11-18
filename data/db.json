@@ -46,8 +46,10 @@
       "groupId": "mwd7lysptvg4ti",
       "date": "2021-11-07",
       "course": "Club D",
-      "costs": {},
-      "memo": "",
+      "costs": {
+        "other": 440000
+      },
+      "memo": "1박2일 패키지: 조식, 숙박 포함",
       "scores": {
         "mwd7mh6z1zday1": 107,
         "mwd7mtpfbdtf5s": 91,
