@@ -17,6 +17,7 @@ let db = { version: 1, groups: [], rounds: [] };
 let sha = null; // GitHub 파일 sha
 let groupId = localStorage.getItem("golf.group") || "";
 let period = { type: "all", from: "", to: "" };
+let memberId = "all"; // 분석 탭에서 선택한 멤버 ("all" = 그룹 전체)
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
@@ -210,9 +211,18 @@ function renderDashboard() {
   const g = curGroup();
   if (!g) { el.innerHTML = noGroupMsg(); return; }
 
-  const rounds = groupRounds();
+  if (memberId !== "all" && !g.members.some((m) => m.id === memberId)) memberId = "all";
+  const mem = g.members.find((m) => m.id === memberId) || null;
+  let rounds = groupRounds();
+  if (mem) rounds = rounds.filter((r) => Number.isFinite(r.scores?.[mem.id]));
   const opts = [["all", "전체"], ["year", "올해"], ["lastyear", "작년"], ["m3", "최근 3개월"], ["m6", "최근 6개월"], ["custom", "직접 지정"]];
   let html = `<div class="card"><div class="row">
+    <label class="field">멤버
+      <select id="memberSel">
+        <option value="all" ${mem ? "" : "selected"}>전체 (그룹)</option>
+        ${g.members.map((m) => `<option value="${esc(m.id)}" ${mem?.id === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
+      </select>
+    </label>
     <label class="field">기간
       <select id="periodType">${opts.map(([v, l]) => `<option value="${v}" ${period.type === v ? "selected" : ""}>${l}</option>`).join("")}</select>
     </label>
@@ -223,6 +233,12 @@ function renderDashboard() {
 
   if (!rounds.length) {
     el.innerHTML = html + `<div class="card">해당 기간에 기록된 라운딩이 없습니다.</div>`;
+    bindDashboard();
+    return;
+  }
+
+  if (mem) {
+    el.innerHTML = html + memberAnalysis(mem, rounds);
     bindDashboard();
     return;
   }
@@ -294,7 +310,60 @@ function renderDashboard() {
   bindDashboard();
 }
 
+/* 한 멤버만의 분석 (rounds는 해당 멤버가 점수를 기록한 라운딩만 포함) */
+function memberAnalysis(m, rounds) {
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const f = (v) => (v == null ? "-" : fix1(v));
+  const sc = rounds.map((r) => r.scores[m.id]);
+  const recent = sc.slice(-5);
+  const prev = sc.slice(-10, -5);
+  const costs = rounds.map(roundCost);
+  const stat = { m, color: COLORS[0], n: sc.length };
+  let html = `<div class="card"><h2>${esc(m.name)} 요약</h2><div class="stats">
+    <div class="stat">라운딩 수<b>${sc.length}회</b></div>
+    <div class="stat">평균 타수<b>${f(avg(sc))}</b></div>
+    <div class="stat">베스트<b>${Math.min(...sc)}</b></div>
+    <div class="stat">워스트<b>${Math.max(...sc)}</b></div>
+    <div class="stat">최근 5회 평균<b>${f(avg(recent))}</b></div>
+    <div class="stat">1인당 평균 비용<b>${won(avg(costs))}</b></div>
+    <div class="stat">1인당 비용 합계<b>${won(costs.reduce((a, b) => a + b, 0))}</b></div>
+  </div>
+  ${prev.length ? `<p class="muted">직전 5회 평균 ${fix1(avg(prev))} → 최근 5회 평균 ${fix1(avg(recent))} (${avg(recent) - avg(prev) > 0 ? "+" : ""}${fix1(avg(recent) - avg(prev))})</p>` : ""}
+  <p class="muted">${esc(rounds[0].date)} ~ ${esc(rounds[rounds.length - 1].date)}</p></div>`;
+
+  html += `<div class="card"><h2>스코어 추이</h2>${lineChart(rounds, [stat])}</div>`;
+
+  const group = (keyFn) => {
+    const out = {};
+    rounds.forEach((r) => {
+      const c = (out[keyFn(r)] ||= { sc: [], cost: 0 });
+      c.sc.push(r.scores[m.id]);
+      c.cost += roundCost(r);
+    });
+    return out;
+  };
+  const byCourse = group((r) => r.course);
+  html += `<div class="card"><h2>골프장별</h2><table>
+    <tr><th>골프장</th><th>횟수</th><th>평균</th><th>베스트</th><th>1인당 평균 비용</th></tr>
+    ${Object.entries(byCourse).sort((a, b) => b[1].sc.length - a[1].sc.length).map(([n, c]) => `<tr><td>${esc(n)}</td>
+      <td>${c.sc.length}</td><td>${f(avg(c.sc))}</td><td>${Math.min(...c.sc)}</td><td>${won(c.cost / c.sc.length)}</td></tr>`).join("")}
+  </table></div>`;
+  const byMonth = group((r) => r.date.slice(0, 7));
+  html += `<div class="card"><h2>월별</h2><table>
+    <tr><th>월</th><th>횟수</th><th>평균</th><th>베스트</th><th>1인당 비용 합계</th></tr>
+    ${Object.entries(byMonth).sort().reverse().map(([k, c]) => `<tr><td>${esc(k)}</td>
+      <td>${c.sc.length}</td><td>${f(avg(c.sc))}</td><td>${Math.min(...c.sc)}</td><td>${won(c.cost)}</td></tr>`).join("")}
+  </table></div>`;
+
+  html += `<div class="card"><h2>라운딩별 기록</h2><table>
+    <tr><th>날짜</th><th>골프장</th><th>타수</th></tr>
+    ${[...rounds].reverse().map((r) => `<tr><td>${esc(r.date)}</td><td>${esc(r.course)}</td><td>${r.scores[m.id]}</td></tr>`).join("")}
+  </table></div>`;
+  return html;
+}
+
 function bindDashboard() {
+  $("memberSel").onchange = (e) => { memberId = e.target.value; renderDashboard(); };
   $("periodType").onchange = (e) => { period.type = e.target.value; renderDashboard(); };
   if ($("pFrom")) $("pFrom").onchange = (e) => { period.from = e.target.value; renderDashboard(); };
   if ($("pTo")) $("pTo").onchange = (e) => { period.to = e.target.value; renderDashboard(); };
