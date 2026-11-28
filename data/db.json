@@ -158,7 +158,9 @@
       "groupId": "mwd7lysptvg4ti",
       "date": "2026-11-28",
       "course": "문경cc",
-      "costs": {},
+      "costs": {
+        "food": 826000
+      },
       "memo": "",
       "scores": {
         "mwd7mh6z1zday1": 108,
